@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environment
+.venv/
+
+# Secrets and session state (never commit)
+.env
+storage_state.json
+
+# Default download output
+/downloads/
+
+# Playwright traces / artifacts
+trace.zip
+test-results/

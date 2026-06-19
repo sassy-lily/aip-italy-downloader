@@ -1,0 +1,16 @@
+# Tooling configuration only. Dependencies are managed via requirements*.txt
+# (pip-only workflow), so this file intentionally declares no project metadata
+# that pip would install from.
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "PTH"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]

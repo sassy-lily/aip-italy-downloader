@@ -1,0 +1,6 @@
+# Runtime dependencies for aip-downloader (Python 3.14). Pinned for reproducibility.
+httpx==0.28.1
+beautifulsoup4==4.15.0
+lxml==6.1.1
+playwright==1.60.0
+python-dotenv==1.2.2
