@@ -5,25 +5,24 @@ Publication) portal, discovers published PDF documents, and downloads them
 locally. **Status: greenfield** — the structure below is the intended target,
 not yet built. Update sections as reality lands.
 
-## Open questions (resolve before/while implementing)
-- **Auth is Oracle IDCS via SAML SSO** (known). Unverified: how to complete the
-  login programmatically, and whether MFA / email verification rules out
-  unattended automation. Expect to need a real browser (Playwright); if login
-  can't be fully scripted, persist a manual-login session (`storage_state`) and
-  reuse it. Record the verified mechanism here once known.
-- **Rendering is unverified.** Assume PDF links live in server-rendered HTML and
-  build on an HTTP client first. If pages turn out to be JS-rendered (or login
-  needs JS), fall back to Playwright — keep browser logic behind the same
-  auth/discovery interface so the rest of the code is unaffected.
-- **Active-version identification is unverified.** The service landing page lists
-  the current active version plus upcoming not-yet-active ones (AIRAC cycle,
-  28-day cadence). Discover how to read the active version's id/effective date
-  from that page. Record it here.
-- **Change-distinction is unverified.** It is not yet known whether the site
-  exposes which pages changed between versions (e.g. a GEN 0.4 checklist of
-  effective pages, an AIRAC AMDT list, NEW/CHG markers, or honored HTTP
-  `ETag`/`Last-Modified`). Recon must find out; the delta optimization depends
-  on it (see Versioning).
+## Site mechanics (verified in Phase 1 — full detail in docs/RECON.md)
+- **Auth:** Oracle IDCS → OAM/SAML, password-only (no MFA). Headless Playwright
+  login works; persist `storage_state.json` and reuse the cookies in httpx for
+  the whole crawl/download (no browser after login).
+- **Active version:** the `<a>` under the `Uscita Corrente` heading on
+  `…/AIP/AIP/defaultInt.html`. Edition folder e.g. `(A06-26)_2026_06_11`.
+- **Enumeration:** parse `<edition>/eAIP/menu.html` for `LI-<id>-it-IT.html`
+  links (907 pages for A06-26: GEN 28, ENR 408, AD 471).
+- **Per-page PDF:** strip the language suffix, map `/eAIP`→`/documents/PDF`,
+  `.html`→`.pdf` — i.e. `documents/PDF/LI-<id>.pdf` (one bilingual PDF per page).
+- **Ordering:** use `menu.html` document order (numeric sort is wrong for AD).
+- **Delta:** PDFs expose `ETag` + `Last-Modified` → `HTTP_VALIDATORS`.
+
+## Open questions
+- Whether to also fetch `eSUP` (supplements) / `eAIC` (circulars) — same PDF
+  mechanism, currently treated as optional follow-on to the main eAIP.
+- Whether any page needs the `Merged_…` PDF variant (`commands.js` MergeFileCheck)
+  rather than the plain per-page PDF.
 
 ## Environment & setup
 - Python **3.14**, plain `venv` + `pip` (no uv/poetry).
