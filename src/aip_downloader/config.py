@@ -27,6 +27,7 @@ class Settings:
     user: str
     password: str
     politeness: PolitenessPolicy = field(default_factory=PolitenessPolicy)
+    session_path: Path = field(default_factory=lambda: Path("storage_state.json"))
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None) -> Settings:
@@ -42,6 +43,7 @@ class Settings:
             output_dir=Path(env.get("AIP_OUTPUT_DIR", DEFAULT_OUTPUT_DIR)),
             user=env.get("AIP_USER", ""),
             password=env.get("AIP_PASS", ""),
+            session_path=Path(env.get("AIP_SESSION_PATH", "storage_state.json")),
         )
 
     def require_credentials(self) -> None:
