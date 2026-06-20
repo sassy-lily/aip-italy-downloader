@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import UTC, datetime
 
+from . import index as index_io
 from . import manifest as manifest_io
 from . import naming
 from .config import Settings
@@ -101,4 +102,5 @@ async def run(
         )
         manifest_io.save(manifest, version_dir)
         logger.info("wrote manifest for %s", active.version_id)
+        index_io.write_index(manifest, version_dir)
         return manifest
