@@ -5,7 +5,7 @@ Information Publication) from ENAV's portal, saving each page individually,
 named by section and page, in true publication order, as a per-version snapshot.
 
 > Status: in development. The site-specific login/navigation internals are filled
-> in after a recon phase (see `docs/BUILD_PROMPT.md` and `docs/RECON.md`).
+> in after a recon phase (see `docs/prompts/build.md` and `docs/RECON.md`).
 
 ## Requirements
 
