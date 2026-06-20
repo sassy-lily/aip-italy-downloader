@@ -1,0 +1,43 @@
+name: CI
+
+# Lint and test on every push to master and on PRs targeting it.
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+# A newer push to the same ref cancels in-flight runs for that ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      # Non-mutating checks: fail on drift instead of rewriting files.
+      - name: Ruff format (check only)
+        run: ruff format --check .
+
+      - name: Ruff lint
+        run: ruff check .
+
+      # Tests are fully mocked (respx / MockTransport) — no secrets, no network.
+      - name: Pytest
+        run: pytest
