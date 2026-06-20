@@ -7,6 +7,10 @@ behind Oracle SSO.
 
 ## 1. Authentication — solved, headless, no MFA
 
+> Update: a later spike proved this login is fully replayable with **httpx alone**
+> (no browser) — see `auth.py`. The Playwright details below are kept as the
+> original recon record / fallback reference.
+
 Login is **Oracle IDCS** federated to the portal via **OAM/SAML**. Driving it
 headless with Playwright works end to end (password-only account, no MFA/OTP).
 

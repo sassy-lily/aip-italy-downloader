@@ -8,9 +8,10 @@ the live ENAV site for the main eAIP (GEN/ENR/AD, 907 pages). See the verified
 mechanics below and docs/RECON.md.
 
 ## Site mechanics (verified in Phase 1 — full detail in docs/RECON.md)
-- **Auth:** Oracle IDCS → OAM/SAML, password-only (no MFA). Headless Playwright
-  login works; persist `storage_state.json` and reuse the cookies in httpx for
-  the whole crawl/download (no browser after login).
+- **Auth:** Oracle IDCS → OAM/SAML, password-only (no MFA). Replayed entirely
+  over **httpx** (no browser): a chain of form/JSON POSTs whose tokens come from
+  each prior response. Cookies are persisted (`storage_state.json` shape) and
+  reused for the whole crawl/download.
 - **Active version:** the `<a>` under the `Uscita Corrente` heading on
   `…/AIP/AIP/defaultInt.html`. Edition folder e.g. `(A06-26)_2026_06_11`.
 - **Enumeration:** parse `<edition>/eAIP/menu.html` for `LI-<id>-it-IT.html`
@@ -25,6 +26,10 @@ mechanics below and docs/RECON.md.
   mechanism, currently treated as optional follow-on to the main eAIP.
 - Whether any page needs the `Merged_…` PDF variant (`commands.js` MergeFileCheck)
   rather than the plain per-page PDF.
+- **Auth brittleness:** the httpx login hits IDCS internal endpoints tied to a
+  versioned JS bundle, so an IDCS upgrade could break it. And it assumes no
+  adaptive MFA — if ENAV enables MFA/device-trust, interactive auth (a browser
+  step) would need to be reintroduced.
 
 ## Environment & setup
 - Python **3.14**, plain `venv` + `pip` (no uv/poetry).
