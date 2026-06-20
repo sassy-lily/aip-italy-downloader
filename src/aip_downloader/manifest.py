@@ -99,6 +99,34 @@ def manifest_from_dict(data: dict) -> VersionManifest:
     )
 
 
+def merge_pages(
+    prior: VersionManifest | None, fresh: list[PageRecord]
+) -> list[PageRecord]:
+    """Overlay this run's pages onto the prior snapshot without dropping any.
+
+    A version snapshot is append/update-only, so a manifest write must never
+    truncate to just the pages processed this run (which is what `--limit` would
+    otherwise cause). Keyed by `page_id`:
+
+    - a page processed this run *replaces* its prior record;
+    - a page new this run is *appended*;
+    - a prior page not touched this run is *preserved unchanged* (status, hash,
+      validators all intact, so a later run still emits conditional GETs).
+
+    The merged list is returned sorted by `ordering_index` to keep the manifest
+    in authoritative menu order. With `prior=None` this is just `fresh` ordered.
+    """
+    # dict preserves insertion order, but ordering_index is the authority, so we
+    # sort at the end regardless of which side a given page came from.
+    by_id: dict[str, PageRecord] = {}
+    if prior is not None:
+        for page in prior.pages:
+            by_id[page.page_id] = page
+    for page in fresh:
+        by_id[page.page_id] = page
+    return sorted(by_id.values(), key=lambda p: p.ordering_index)
+
+
 def manifest_path(version_dir: Path) -> Path:
     return version_dir / MANIFEST_NAME
 

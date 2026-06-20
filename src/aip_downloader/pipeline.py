@@ -90,7 +90,7 @@ async def run(
             {p.page_id: p for p in existing.pages} if existing is not None else {}
         )
         throttle = Throttle(settings.politeness)
-        manifest.pages = await download_all(
+        results = await download_all(
             client,
             ordered,
             version_dir,
@@ -100,6 +100,10 @@ async def run(
             force_full=force_full,
             now=now,
         )
+        # Merge this run's results into the existing manifest rather than
+        # replacing it, so a limited/resumed run tops up the snapshot instead of
+        # truncating it to just the pages processed this time.
+        manifest.pages = manifest_io.merge_pages(existing, results)
         manifest_io.save(manifest, version_dir)
         logger.info("wrote manifest for %s", active.version_id)
         index_io.write_index(manifest, version_dir)

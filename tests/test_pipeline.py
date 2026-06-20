@@ -175,3 +175,49 @@ async def test_second_run_resumes_and_skips(tmp_path):
             == counts_after_first[pid]
         )
     assert all(p.status == PageStatus.SKIPPED for p in manifest.pages)
+
+
+@respx.mock
+async def test_limited_run_keeps_untouched_prior_pages(tmp_path):
+    from aip_downloader import manifest as manifest_io
+
+    for pid in ("GEN-0.4", "ENR-1.2", "ENR-1.10"):
+        _mock_pdf(pid)
+
+    # First, a full run establishes a complete 3-page manifest.
+    await pipeline.run(
+        _settings(tmp_path),
+        auth=FakeAuth(),
+        version_provider=FakeVersionProvider(),
+        discoverer=FakeDiscoverer(_make_pages()),
+        now=_now,
+    )
+
+    # Then a limited run processes only the first page. The merge must keep the
+    # other two prior records rather than truncating the manifest to `limit`.
+    manifest = await pipeline.run(
+        _settings(tmp_path),
+        auth=FakeAuth(),
+        version_provider=FakeVersionProvider(),
+        discoverer=FakeDiscoverer(_make_pages()),
+        limit=1,
+        now=_now,
+    )
+
+    version_dir = tmp_path / "2026-06-25_2026-07"
+    saved = manifest_io.load(version_dir)
+    assert saved is not None
+
+    for result in (manifest, saved):
+        # Did not shrink to `limit`; full menu order preserved.
+        assert [p.page_id for p in result.pages] == [
+            "GEN-0.4",
+            "ENR-1.2",
+            "ENR-1.10",
+        ]
+        by_id = {p.page_id: p for p in result.pages}
+        # Untouched prior pages keep their DONE status and validators intact.
+        assert by_id["ENR-1.2"].status == PageStatus.DONE
+        assert by_id["ENR-1.2"].etag == '"ENR-1.2"'
+        assert by_id["ENR-1.10"].status == PageStatus.DONE
+        assert by_id["ENR-1.10"].etag == '"ENR-1.10"'

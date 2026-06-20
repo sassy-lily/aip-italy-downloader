@@ -76,3 +76,57 @@ def test_diff_against_no_previous(make_page):
     assert diff.added == ["ENR-1.1"]
     assert diff.removed == []
     assert diff.common == []
+
+
+def _manifest_with(pages) -> VersionManifest:
+    return VersionManifest(
+        version_id="2026-06-25-AIRAC",
+        effective_date=date(2026, 6, 25),
+        source_landing_url="https://x",
+        pages=pages,
+    )
+
+
+def test_merge_pages_updates_in_place_and_preserves_untouched(make_page):
+    prior = _manifest_with(
+        [
+            make_page("A", ordering_index=0, status=PageStatus.DONE, etag='"a"'),
+            make_page("B", ordering_index=1, status=PageStatus.DONE, etag='"b"'),
+            make_page("C", ordering_index=2, status=PageStatus.DONE, etag='"c"'),
+        ]
+    )
+    # B is re-processed this run: its record carries new validators/status.
+    fresh = [make_page("B", ordering_index=1, status=PageStatus.SKIPPED, etag='"b2"')]
+
+    merged = m.merge_pages(prior, fresh)
+
+    assert [p.page_id for p in merged] == ["A", "B", "C"]  # order preserved
+    by_id = {p.page_id: p for p in merged}
+    assert by_id["B"].etag == '"b2"'  # fresh data wins
+    assert by_id["B"].status == PageStatus.SKIPPED
+    assert by_id["A"].etag == '"a"'  # untouched prior records intact
+    assert by_id["C"].etag == '"c"'
+
+
+def test_merge_pages_appends_new_id_in_order(make_page):
+    prior = _manifest_with(
+        [
+            make_page("A", ordering_index=0),
+            make_page("C", ordering_index=2),
+        ]
+    )
+    # D is new this run and sorts between A and C by ordering_index.
+    fresh = [make_page("D", ordering_index=1, status=PageStatus.DONE)]
+
+    merged = m.merge_pages(prior, fresh)
+
+    assert [p.page_id for p in merged] == ["A", "D", "C"]
+
+
+def test_merge_pages_no_prior_returns_fresh(make_page):
+    fresh = [
+        make_page("A", ordering_index=0),
+        make_page("B", ordering_index=1),
+    ]
+    merged = m.merge_pages(None, fresh)
+    assert [p.page_id for p in merged] == ["A", "B"]
