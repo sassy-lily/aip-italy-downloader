@@ -1,0 +1,28 @@
+version: 2
+updates:
+  # Python runtime + dev dependencies. Dependabot reads the pinned versions
+  # from requirements.txt and requirements-dev.txt (it follows the `-r` include).
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build
+      prefix-development: build
+    groups:
+      # One PR for routine dev-tooling bumps to cut review noise.
+      dev-dependencies:
+        patterns:
+          - ruff
+          - pytest*
+          - respx
+
+  # The action versions pinned in .github/workflows/*.yml.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
