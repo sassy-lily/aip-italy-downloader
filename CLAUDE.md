@@ -2,8 +2,10 @@
 
 A Python 3.14 tool that authenticates to an AIP (Aeronautical Information
 Publication) portal, discovers published PDF documents, and downloads them
-locally. **Status: greenfield** — the structure below is the intended target,
-not yet built. Update sections as reality lands.
+locally. **Status: functional** — the full pipeline (login → active version →
+discover → download → manifest) is implemented and verified end-to-end against
+the live ENAV site for the main eAIP (GEN/ENR/AD, 907 pages). See the verified
+mechanics below and docs/RECON.md.
 
 ## Site mechanics (verified in Phase 1 — full detail in docs/RECON.md)
 - **Auth:** Oracle IDCS → OAM/SAML, password-only (no MFA). Headless Playwright
