@@ -65,11 +65,11 @@ def _make_pages() -> list[PageRecord]:
             output_filename="",
         )
 
-    # Deliberately out of order to prove the pipeline sorts them.
+    # discover supplies the authoritative order; the pipeline must preserve it.
     return [
-        page(AipSection.ENR, "ENR-1.10"),
-        page(AipSection.ENR, "ENR-1.2"),
         page(AipSection.GEN, "GEN-0.4"),
+        page(AipSection.ENR, "ENR-1.2"),
+        page(AipSection.ENR, "ENR-1.10"),
     ]
 
 
