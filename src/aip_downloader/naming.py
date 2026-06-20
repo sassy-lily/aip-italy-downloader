@@ -8,6 +8,7 @@ just calls renumber() to stamp the sequential prefix.
 from __future__ import annotations
 
 import re
+from datetime import date
 
 from .models import SECTION_RANK, AipSection, PageRecord
 
@@ -55,3 +56,15 @@ def slugify_version(version_id: str) -> str:
     """Make a version id safe to use as a directory name."""
     slug = _UNSAFE_RE.sub("-", version_id).strip("-")
     return slug or "unknown-version"
+
+
+def version_dirname(effective_date: date, airac_cycle: str | None) -> str:
+    """Chronologically-sortable snapshot dir name: ``<YYYY-MM-DD>_<airac>``.
+
+    Leading with the ISO effective date makes a plain lexical sort match
+    chronological order (unlike the AIRAC code, which sorts amendment-then-year).
+    """
+    date_part = effective_date.isoformat()  # ISO date: lexical == chronological
+    if not airac_cycle:
+        return date_part
+    return f"{date_part}_{slugify_version(airac_cycle)}"

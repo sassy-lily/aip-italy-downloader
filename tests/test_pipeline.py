@@ -98,7 +98,7 @@ async def test_pipeline_downloads_in_publication_order(tmp_path):
         now=_now,
     )
 
-    version_dir = tmp_path / "2026-06-25-AIRAC"
+    version_dir = tmp_path / "2026-06-25_2026-07"
     assert [p.page_id for p in manifest.pages] == ["GEN-0.4", "ENR-1.2", "ENR-1.10"]
     assert (version_dir / "0001_GEN-0.4.pdf").exists()
     assert (version_dir / "0002_ENR-1.2.pdf").exists()
@@ -124,7 +124,7 @@ async def test_dry_run_downloads_nothing(tmp_path):
     )
 
     assert manifest.pages[0].status == PageStatus.PENDING
-    assert not (tmp_path / "2026-06-25-AIRAC").exists()
+    assert not (tmp_path / "2026-06-25_2026-07").exists()
     assert route.call_count == 0
 
 

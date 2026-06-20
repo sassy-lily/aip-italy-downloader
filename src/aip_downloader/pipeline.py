@@ -58,7 +58,9 @@ async def run(
         active = await version_provider.get_active_version(client, settings)
         logger.info("active version: %s (%s)", active.version_id, active.effective_date)
 
-        version_dir = settings.output_dir / naming.slugify_version(active.version_id)
+        version_dir = settings.output_dir / naming.version_dirname(
+            active.effective_date, active.airac_cycle
+        )
         existing = manifest_io.load(version_dir)  # same-version resume state
 
         # discover yields pages in authoritative menu order; just stamp indices.
