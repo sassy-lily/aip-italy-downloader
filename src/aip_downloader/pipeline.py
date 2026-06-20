@@ -34,6 +34,7 @@ async def run(
     discoverer: Discoverer,
     dry_run: bool = False,
     force_full: bool = False,
+    limit: int | None = None,
     now: Callable[[], datetime] = _utcnow,
 ) -> VersionManifest:
     """Download the current active AIP into its own version snapshot.
@@ -60,9 +61,13 @@ async def run(
         version_dir = settings.output_dir / naming.slugify_version(active.version_id)
         existing = manifest_io.load(version_dir)  # same-version resume state
 
+        # discover yields pages in authoritative menu order; just stamp indices.
         records = await discoverer.discover(client, active)
-        ordered = naming.renumber(naming.sort_by_page_id(records))
-        logger.info("discovered %d pages", len(ordered))
+        ordered = naming.renumber(records)
+        if limit is not None:
+            ordered = ordered[:limit]
+            logger.info("limiting to first %d of %d pages", len(ordered), len(records))
+        logger.info("processing %d pages", len(ordered))
 
         manifest = VersionManifest(
             version_id=active.version_id,

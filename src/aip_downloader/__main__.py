@@ -32,6 +32,17 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Re-download every page even if already present/unchanged.",
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Only process the first N pages (for testing).",
+    )
+    parser.add_argument(
+        "--login",
+        action="store_true",
+        help="Force a fresh login, discarding any saved session.",
+    )
     parser.add_argument("--log-level", default="INFO", help="Logging level.")
     return parser.parse_args(argv)
 
@@ -45,6 +56,10 @@ def main(argv: list[str] | None = None) -> int:
         from pathlib import Path
 
         settings.output_dir = Path(args.output_dir)
+
+    if args.login and settings.session_path.exists():
+        settings.session_path.unlink()
+        logger.info("discarded saved session (forcing fresh login)")
 
     if not args.dry_run:
         try:
@@ -62,6 +77,7 @@ def main(argv: list[str] | None = None) -> int:
                 discoverer=EnavDiscoverer(),
                 dry_run=args.dry_run,
                 force_full=args.force_full,
+                limit=args.limit,
             )
         )
     except NotImplementedError as exc:
